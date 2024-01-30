@@ -7,22 +7,18 @@ display_status() {
     local settings_output=$(nordvpn settings)
 
     # Parse the stored output
-    local status=$(awk '/Status/ {print $4}' <<< "$status_output")
-    local location=$(awk '/City/ {print $2}' <<< "$status_output")
-    local transfer=$(awk '/Transfer/ {print $2, $3, "|", $5, $6}' <<< "$status_output")
-    local killswitch=$(awk '/Kill Switch/ {print $3}' <<< "$settings_output")
+    local status=$(echo "$status_output" | awk -F': ' '/Status/ {print $2}')
+    local location=$(echo "$status_output" | awk -F': ' '/City/ {print $2}')
+    local transfer=$(echo "$status_output" | awk -F': ' '/Transfer/ {print $2}')
+    local killswitch=$(echo "$settings_output" | awk -F': ' '/Kill Switch/ {print $2}')
 
     # Conditional display 
-
-    if [ "$status" = "Connected" ]; then
+    if [[ "$status" == "Connected" ]]; then
         echo "Location: $location, Transfer: $transfer, Killswitch: $killswitch"
-    elif [ "$killswitch" = "enabled" ]; then
-        echo "Status: $status, Location: $location, Transfer: $transfer, Killswitch: $killswitch"
     else
         echo "VPN Disconnected"
     fi
 }
-
 # Toggle Kill switch Function
 toggle_killswitch() {
     local killswitch_status=$(nordvpn settings | awk '/Kill Switch/ {print $3}')
